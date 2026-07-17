@@ -6,6 +6,8 @@ using YildizCanAdmin.Web.Components.Account;
 using YildizCanAdmin.Web.Data;
 using YildizCanAdmin.Web.Services;
 
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -77,5 +79,15 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+app.MapGet("/reports/student/{user}/{id}", async (string user, string id, YildizCanApiClient api) =>
+{
+    var detail = await api.GetStudentAsync(user, id);
+    if (detail is null) return Results.NotFound();
+    var sessions = await api.GetSessionsAsync(user, id)
+        ?? new YildizCanAdmin.Shared.SessionsResponse([], []);
+    var pdf = ParentReportPdf.Generate(detail, sessions);
+    return Results.File(pdf, "application/pdf", $"veli-raporu-{id}.pdf");
+}).RequireAuthorization();
 
 app.Run();
