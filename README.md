@@ -21,14 +21,14 @@ src/
 ```
 
 ## Yapılandırma
-`YildizCan:ApiBaseUrl` `appsettings.json`'da (sonu `/` ile biter). `ADMIN_KEY` **gizlidir**,
+`YildizCan:ApiBaseUrl` `appsettings.json`'da (sonu `/` ile biter). `ADMIN_API_KEY` **gizlidir**,
 kaynağa girmez — user-secrets veya ortam değişkeni ile verilir:
 
 ```bash
 dotnet user-secrets set "YildizCan:AdminKey" "<gercek-admin-key>" --project src/YildizCanAdmin.Web
 ```
 
-> Güvenlik: `ADMIN_KEY`, YıldızCan'da tüm kullanıcıların (şifreli) öğrenci PII'ını çözen bir okuma
+> Güvenlik: `ADMIN_API_KEY`, YıldızCan'da tüm kullanıcıların (şifreli) öğrenci PII'ını çözen bir okuma
 > yoluna açar. Yalnızca bu sunucuda tutulur, tarayıcıya asla verilmez.
 
 ## Çalıştırma
