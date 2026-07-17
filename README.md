@@ -40,9 +40,9 @@ dotnet run --project src/YildizCanAdmin.Web
 
 ## Durum
 - [x] Solution iskeleti, Identity, API istemcisi, öğrenci listesi ekranı (derleniyor)
-- [ ] Öğrenci detay + seans geçmişi ekranı
+- [x] Öğrenci detay + seans geçmişi ekranı (`/students/{user}/{id}`)
+- [x] Register kısıtlama — ilk hesaptan sonra kayıt kapanır (app.db silinirse yeniden açılır)
 - [ ] Başarı yüzdesi grafiği
 - [ ] PDF veli raporu (QuestPDF)
-- [ ] Register kısıtlama (admin panelinde açık kayıt istenmez)
 
 Plan ve endpoint sözleşmeleri: YıldızCan repo'sundaki `yonetim-paneli-taslak.md`.

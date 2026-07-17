@@ -1,0 +1,132 @@
+@page "/students/{AccountUser}/{StudentId}"
+@using System.Text.Json
+@using YildizCanAdmin.Shared
+@using YildizCanAdmin.Web.Services
+@attribute [Authorize]
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject YildizCanApiClient Api
+
+<PageTitle>Öğrenci Detayı</PageTitle>
+
+<p><a href="/students">← Öğrenci listesine dön</a></p>
+
+@if (loading)
+{
+    <p><em>Yükleniyor…</em></p>
+}
+else if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">Veri alınamadı: @error</div>
+}
+else if (detail is null)
+{
+    <p>Öğrenci bulunamadı.</p>
+}
+else
+{
+    var s = detail.Student;
+    var sum = detail.Summary;
+
+    <h1>@(string.IsNullOrWhiteSpace(s.FullName) ? "(isimsiz)" : s.FullName)</h1>
+    <p class="text-muted">
+        Hesap: <strong>@s.Username</strong>
+        @if (s.BirthYear is not null)
+        {
+            <span> · Doğum yılı: <strong>@s.BirthYear</strong></span>
+        }
+    </p>
+    @if (!string.IsNullOrWhiteSpace(s.SupportNotes))
+    {
+        <p><strong>Destek notu:</strong> @s.SupportNotes</p>
+    }
+
+    <h2>Nesne Tanıma Özeti</h2>
+    <div class="row mb-3">
+        <div class="col-6 col-md-3"><div class="card p-3 text-center"><div class="fs-3">@sum.Plays</div><div class="text-muted">Oyun</div></div></div>
+        <div class="col-6 col-md-3"><div class="card p-3 text-center"><div class="fs-3">@(sum.Accuracy is null ? "—" : $"%{sum.Accuracy}")</div><div class="text-muted">Doğruluk</div></div></div>
+        <div class="col-6 col-md-3"><div class="card p-3 text-center"><div class="fs-3">@sum.Perfect</div><div class="text-muted">Hatasız oyun</div></div></div>
+        <div class="col-6 col-md-3"><div class="card p-3 text-center"><div class="fs-3">@(sum.LastPlayed?.ToLocalTime().ToString("dd.MM.yyyy") ?? "—")</div><div class="text-muted">Son oyun</div></div></div>
+    </div>
+
+    <h2>Nesne Tanıma Seansları</h2>
+    @if (sessions is null || sessions.ObjResults.Count == 0)
+    {
+        <p>Henüz nesne tanıma seansı yok.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr><th>Tarih</th><th>Doğru</th><th>Hata</th><th>Doğruluk</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var r in sessions.ObjResults)
+                {
+                    <tr>
+                        <td>@(r.Date?.ToLocalTime().ToString("dd.MM.yyyy HH:mm") ?? "—")</td>
+                        <td>@(r.Items?.ToString() ?? "—")</td>
+                        <td>@(r.Errors?.ToString() ?? "—")</td>
+                        <td>@(r.Accuracy is null ? "—" : $"%{r.Accuracy}")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <h2>Konuşma Pratiği Seansları</h2>
+    @if (sessions is null || sessions.SpeechHistory.Count == 0)
+    {
+        <p>Henüz konuşma pratiği seansı yok.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr><th>Tarih</th><th>Süre (dk)</th><th>Konuşma turu</th><th>Hikâye</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var h in sessions.SpeechHistory)
+                {
+                    <tr>
+                        <td>@P(h, "session_date")</td>
+                        <td>@P(h, "duration_min")</td>
+                        <td>@P(h, "total_turns")</td>
+                        <td>@P(h, "story_name")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    [Parameter] public string AccountUser { get; set; } = "";
+    [Parameter] public string StudentId { get; set; } = "";
+
+    private bool loading = true;
+    private string? error;
+    private StudentDetailResponse? detail;
+    private SessionsResponse? sessions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            detail = await Api.GetStudentAsync(AccountUser, StudentId);
+            sessions = await Api.GetSessionsAsync(AccountUser, StudentId);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private static string P(JsonElement e, string name)
+        => e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind != JsonValueKind.Null
+            ? v.ToString()
+            : "—";
+}

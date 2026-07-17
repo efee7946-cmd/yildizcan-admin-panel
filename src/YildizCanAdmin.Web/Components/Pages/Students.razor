@@ -37,7 +37,11 @@ else
             @foreach (var s in students)
             {
                 <tr>
-                    <td>@(string.IsNullOrWhiteSpace(s.FullName) ? "—" : s.FullName)</td>
+                    <td>
+                        <a href="/students/@s.Username/@s.Id">
+                            @(string.IsNullOrWhiteSpace(s.FullName) ? "(isimsiz)" : s.FullName)
+                        </a>
+                    </td>
                     <td>@(s.BirthYear?.ToString() ?? "—")</td>
                     <td>@s.Username</td>
                     <td>@(string.IsNullOrWhiteSpace(s.SupportNotes) ? "—" : s.SupportNotes)</td>
