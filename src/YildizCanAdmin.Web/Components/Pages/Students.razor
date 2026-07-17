@@ -1,0 +1,70 @@
+@page "/students"
+@using YildizCanAdmin.Shared
+@using YildizCanAdmin.Web.Services
+@attribute [Authorize]
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject YildizCanApiClient Api
+
+<PageTitle>Öğrenciler</PageTitle>
+
+<h1>Öğrenciler</h1>
+<p class="text-muted">Tüm hesaplardaki öğrenci profilleri (YıldızCan admin API).</p>
+
+@if (loading)
+{
+    <p><em>Yükleniyor…</em></p>
+}
+else if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">Veri alınamadı: @error</div>
+}
+else if (students.Count == 0)
+{
+    <p>Hiç öğrenci bulunamadı.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Ad Soyad</th>
+                <th>Doğum Yılı</th>
+                <th>Hesap</th>
+                <th>Destek Notu</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in students)
+            {
+                <tr>
+                    <td>@(string.IsNullOrWhiteSpace(s.FullName) ? "—" : s.FullName)</td>
+                    <td>@(s.BirthYear?.ToString() ?? "—")</td>
+                    <td>@s.Username</td>
+                    <td>@(string.IsNullOrWhiteSpace(s.SupportNotes) ? "—" : s.SupportNotes)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private bool loading = true;
+    private string? error;
+    private List<Student> students = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            students = await Api.GetStudentsAsync();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}
