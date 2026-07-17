@@ -137,7 +137,7 @@ else
                 @foreach (var h in sessions.SpeechHistory)
                 {
                     <tr>
-                        <td>@P(h, "session_date")</td>
+                        <td>@PDate(h, "session_date")</td>
                         <td>@P(h, "duration_min")</td>
                         <td>@P(h, "total_turns")</td>
                         <td>@P(h, "story_name")</td>
@@ -210,7 +210,16 @@ else
     }
 
     private static string P(JsonElement e, string name)
-        => e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind != JsonValueKind.Null
-            ? v.ToString()
-            : "—";
+    {
+        if (e.ValueKind != JsonValueKind.Object || !e.TryGetProperty(name, out var v) || v.ValueKind == JsonValueKind.Null)
+            return "—";
+        var s = v.ToString();
+        return string.IsNullOrWhiteSpace(s) ? "—" : s;
+    }
+
+    private static string PDate(JsonElement e, string name)
+    {
+        var s = P(e, name);
+        return DateTime.TryParse(s, out var d) ? d.ToString("dd.MM.yyyy") : s;
+    }
 }
