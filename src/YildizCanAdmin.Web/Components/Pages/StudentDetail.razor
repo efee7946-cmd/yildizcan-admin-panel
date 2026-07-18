@@ -44,7 +44,42 @@ else
         <a class="btn btn-primary" href="/reports/student/@s.Username/@s.Id" target="_blank">
             Veli Raporu (PDF)
         </a>
+        <button class="btn btn-info ms-2" @onclick="AnalyzeAsync" disabled="@analyzing">
+            @(analyzing ? "Analiz ediliyor…" : "AI Analizi")
+        </button>
     </p>
+
+    @if (analysisError is not null)
+    {
+        <div class="alert alert-warning">@analysisError</div>
+    }
+    @if (analysis is not null)
+    {
+        <div class="card mb-4 border-info">
+            <div class="card-body">
+                <h5 class="card-title">AI Analizi <span class="badge bg-info text-dark fs-6">Gemini</span></h5>
+                @if (analysis.Strengths.Count > 0)
+                {
+                    <p class="mb-1"><strong>Güçlü alanlar</strong></p>
+                    <ul>
+                        @foreach (var x in analysis.Strengths) { <li>@x</li> }
+                    </ul>
+                }
+                @if (analysis.Difficulties.Count > 0)
+                {
+                    <p class="mb-1"><strong>Zorlandığı alanlar</strong></p>
+                    <ul>
+                        @foreach (var x in analysis.Difficulties) { <li>@x</li> }
+                    </ul>
+                }
+                @if (!string.IsNullOrWhiteSpace(analysis.Suggestion))
+                {
+                    <p class="mb-1"><strong>Öneri:</strong> @analysis.Suggestion</p>
+                }
+                <p class="text-muted mb-0"><small>Yapay zekâ değerlendirmesidir; klinik veya eğitsel değerlendirmenin yerine geçmez. Analize isim gönderilmez, yalnızca sayısal veriler kullanılır.</small></p>
+            </div>
+        </div>
+    }
 
     <h2>Nesne Tanıma Özeti</h2>
     <div class="row mb-3">
@@ -162,6 +197,9 @@ else
     private string? error;
     private StudentDetailResponse? detail;
     private SessionsResponse? sessions;
+    private bool analyzing;
+    private string? analysisError;
+    private AnalysisResult? analysis;
 
     private sealed record ChartPoint(int X, int Y, int Acc, string Tip, int TipX, int TipY);
     private List<ChartPoint> chartPoints = [];
@@ -186,6 +224,30 @@ else
         finally
         {
             loading = false;
+        }
+    }
+
+    private async Task AnalyzeAsync()
+    {
+        analyzing = true;
+        analysisError = null;
+        try
+        {
+            var r = await Api.AnalyzeStudentAsync(AccountUser, StudentId);
+            if (r is null)
+            {
+                analysisError = "Analiz yapılamadı — öğrencinin yeterli seans verisi olmayabilir.";
+                return;
+            }
+            analysis = r.Analysis;
+        }
+        catch (Exception ex)
+        {
+            analysisError = "Analiz başarısız: " + ex.Message;
+        }
+        finally
+        {
+            analyzing = false;
         }
     }
 

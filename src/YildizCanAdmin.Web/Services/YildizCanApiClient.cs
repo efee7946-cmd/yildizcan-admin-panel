@@ -91,4 +91,11 @@ public sealed class YildizCanApiClient(HttpClient http)
         if (!r.IsSuccessStatusCode) return [];
         return (await r.Content.ReadFromJsonAsync<GenerateResponse>(cancellationToken: ct))?.Suggestions ?? [];
     }
+
+    public async Task<AnalyzeResponse?> AnalyzeStudentAsync(string user, string id, CancellationToken ct = default)
+    {
+        var r = await http.PostAsJsonAsync("api/admin?resource=analyze", new { user, id }, ct);
+        if (!r.IsSuccessStatusCode) return null;
+        return await r.Content.ReadFromJsonAsync<AnalyzeResponse>(cancellationToken: ct);
+    }
 }
