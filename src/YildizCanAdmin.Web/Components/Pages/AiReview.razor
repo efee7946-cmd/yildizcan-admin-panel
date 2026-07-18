@@ -1,0 +1,188 @@
+@page "/ai-review"
+@attribute [Authorize]
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject YildizCanApiClient Api
+
+<PageTitle>AI Denetimi</PageTitle>
+
+<h1>AI Denetimi</h1>
+<p class="text-muted">
+    Konuşma pratiğinde Gemini'nin verdiği cevaplar (son 200, en yeni üstte; 30 gün sonra otomatik silinir).
+    Çocukların söyledikleri kaydedilmez; çocuk adları ⭐ ile maskelenir.
+    Uygunsuz veya hatalı cevabı işaretle — işaretler prompt iyileştirmesinde kullanılır.
+</p>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+@if (info is not null)
+{
+    <div class="alert alert-success">@info</div>
+}
+
+<div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" id="flaggedOnly" checked="@flaggedOnly" @onchange="ToggleFlaggedOnlyAsync" />
+    <label class="form-check-label" for="flaggedOnly">Sadece işaretliler</label>
+</div>
+
+@if (loading)
+{
+    <p><em>Yükleniyor…</em></p>
+}
+else if (replies.Count == 0)
+{
+    <p>@(flaggedOnly ? "İşaretli cevap yok." : "Henüz kayıtlı AI cevabı yok — bir konuşma pratiği seansı sonrası burada görünür.")</p>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th style="width:130px">Tarih</th>
+                <th style="width:110px">Hesap</th>
+                <th style="width:110px">Konu</th>
+                <th>Cevap</th>
+                <th style="width:230px"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in replies)
+            {
+                <tr class="@(r.Flagged ? "table-danger" : "")">
+                    <td>@(r.CreatedAt?.ToLocalTime().ToString("dd.MM HH:mm") ?? "—")</td>
+                    <td>@r.Actor</td>
+                    <td>@TopicLabel(r.Topic)<br /><small class="text-muted">@LevelLabel(r.Level)</small></td>
+                    <td style="white-space:pre-wrap">@r.Reply
+                        @if (r.Flagged && !string.IsNullOrWhiteSpace(r.FlagNote))
+                        {
+                            <div class="mt-1"><small class="text-danger">Not: @r.FlagNote</small></div>
+                        }
+                    </td>
+                    <td>
+                        @if (r.Flagged)
+                        {
+                            <span class="badge bg-danger me-1">İşaretli</span>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => UnflagAsync(r)" disabled="@busy">Kaldır</button>
+                        }
+                        else if (armedFlagId == r.Id)
+                        {
+                            <input class="form-control form-control-sm d-inline-block mb-1" style="width:140px"
+                                   placeholder="Not (opsiyonel)" @bind="flagNote" />
+                            <button class="btn btn-sm btn-danger" @onclick="() => FlagAsync(r)" disabled="@busy">Onayla</button>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => armedFlagId = null" disabled="@busy">Vazgeç</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => { armedFlagId = r.Id; flagNote = string.Empty; }" disabled="@busy">İşaretle</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private static readonly Dictionary<string, string> TopicNames = new()
+    {
+        ["greetings"] = "Selamlaşma",
+        ["introduce"] = "Kendini Tanıtma",
+        ["emotions"] = "Duygular",
+        ["daily"] = "Günlük Yaşam",
+        ["school"] = "Okul",
+        ["food"] = "Yemek",
+        ["hobbies"] = "Hobiler",
+        ["places"] = "Yerler",
+        ["problem"] = "Problem Çözme",
+        ["dreams"] = "Hayaller",
+    };
+
+    private static readonly Dictionary<string, string> LevelNames = new()
+    {
+        ["word"] = "Kelime",
+        ["sentence"] = "Cümle",
+        ["tell"] = "Anlatma",
+    };
+
+    private static string TopicLabel(string? key)
+        => key is not null && TopicNames.TryGetValue(key, out var v) ? v : key ?? "—";
+
+    private static string LevelLabel(string? key)
+        => key is not null && LevelNames.TryGetValue(key, out var v) ? v : key ?? "";
+
+    private bool loading = true;
+    private bool busy;
+    private bool flaggedOnly;
+    private string? error;
+    private string? info;
+    private List<AiReply> replies = [];
+    private long? armedFlagId;
+    private string flagNote = "";
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        loading = true;
+        error = null;
+        try
+        {
+            replies = await Api.GetAiRepliesAsync(flaggedOnly);
+        }
+        catch (Exception ex)
+        {
+            error = "Liste alınamadı: " + ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task ToggleFlaggedOnlyAsync(ChangeEventArgs e)
+    {
+        flaggedOnly = e.Value is true;
+        await ReloadAsync();
+    }
+
+    private async Task FlagAsync(AiReply r)
+    {
+        armedFlagId = null;
+        await RunAsync(async () =>
+        {
+            var ok = await Api.SetAiFlagAsync(r.Id, true, string.IsNullOrWhiteSpace(flagNote) ? null : flagNote.Trim());
+            if (!ok) { error = "İşaretleme başarısız — API hatası."; return; }
+            info = "Cevap işaretlendi.";
+            await ReloadAsync();
+        });
+    }
+
+    private async Task UnflagAsync(AiReply r)
+        => await RunAsync(async () =>
+        {
+            var ok = await Api.SetAiFlagAsync(r.Id, false, null);
+            if (!ok) { error = "İşlem başarısız — API hatası."; return; }
+            info = "İşaret kaldırıldı.";
+            await ReloadAsync();
+        });
+
+    private async Task RunAsync(Func<Task> work)
+    {
+        busy = true;
+        error = null;
+        info = null;
+        try
+        {
+            await work();
+        }
+        catch (Exception ex)
+        {
+            error = "İşlem başarısız: " + ex.Message;
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+}

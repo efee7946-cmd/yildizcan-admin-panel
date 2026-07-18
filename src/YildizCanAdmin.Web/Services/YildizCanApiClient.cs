@@ -74,4 +74,14 @@ public sealed class YildizCanApiClient(HttpClient http)
         var r = await http.PostAsJsonAsync("api/admin?resource=content", new { action = "delete", id }, ct);
         return r.IsSuccessStatusCode;
     }
+
+    public async Task<List<AiReply>> GetAiRepliesAsync(bool flaggedOnly = false, CancellationToken ct = default)
+        => (await http.GetFromJsonAsync<AiRepliesResponse>(
+            "api/admin?resource=aireplies" + (flaggedOnly ? "&flagged=1" : ""), ct))?.Replies ?? [];
+
+    public async Task<bool> SetAiFlagAsync(long id, bool flagged, string? note, CancellationToken ct = default)
+    {
+        var r = await http.PostAsJsonAsync("api/admin?resource=aireplies", new { id, flagged, note }, ct);
+        return r.IsSuccessStatusCode;
+    }
 }

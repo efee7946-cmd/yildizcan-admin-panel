@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace YildizCanAdmin.Shared;
 
@@ -79,3 +80,16 @@ public record ContentListResponse(
     Dictionary<string, ContentOverride>? Overrides = null);
 
 public record BuiltinQuestion(int Idx, string Key, string Tr, string En);
+
+public record AiReply(
+    long Id,
+    string Actor,
+    string? Topic,
+    string? Level,
+    string? Lang,
+    string Reply,
+    bool Flagged,
+    [property: JsonPropertyName("flag_note")] string? FlagNote,
+    [property: JsonPropertyName("created_at")] DateTimeOffset? CreatedAt);
+
+public record AiRepliesResponse(List<AiReply> Replies);
