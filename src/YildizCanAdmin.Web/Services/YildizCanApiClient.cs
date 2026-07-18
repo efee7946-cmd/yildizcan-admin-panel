@@ -84,4 +84,11 @@ public sealed class YildizCanApiClient(HttpClient http)
         var r = await http.PostAsJsonAsync("api/admin?resource=aireplies", new { id, flagged, note }, ct);
         return r.IsSuccessStatusCode;
     }
+
+    public async Task<List<GeneratedQuestion>> GenerateQuestionsAsync(string topic, string level, int ageMin, int ageMax, int count, CancellationToken ct = default)
+    {
+        var r = await http.PostAsJsonAsync("api/admin?resource=generate", new { topic, level, ageMin, ageMax, count }, ct);
+        if (!r.IsSuccessStatusCode) return [];
+        return (await r.Content.ReadFromJsonAsync<GenerateResponse>(cancellationToken: ct))?.Suggestions ?? [];
+    }
 }

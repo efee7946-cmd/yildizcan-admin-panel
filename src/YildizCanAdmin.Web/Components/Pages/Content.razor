@@ -123,6 +123,69 @@ else
     </div>
 }
 
+<h2 class="mt-4">AI ile Öner <span class="badge bg-info text-dark fs-6">Gemini</span></h2>
+<p class="text-muted">Seçili konu için soru önerileri üretir. Öneriler doğrudan yayınlanmaz — beğendiklerin <strong>taslak</strong> olarak havuza eklenir, yayın kararı sende.</p>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Seviye</label>
+                <select class="form-select" @bind="gLevel">
+                    <option value="word">Kelime (kısa)</option>
+                    <option value="sentence">Cümle (orta)</option>
+                    <option value="tell">Anlatma (uzun)</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Yaş (min)</label>
+                <input type="number" class="form-control" @bind="gAgeMin" min="3" max="12" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Yaş (max)</label>
+                <input type="number" class="form-control" @bind="gAgeMax" min="3" max="14" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Adet</label>
+                <input type="number" class="form-control" @bind="gCount" min="1" max="8" />
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-info" @onclick="GenerateAsync" disabled="@(busy || generating)">
+                    @(generating ? "Üretiliyor…" : $"{TopicLabel(selectedTopic)} için öner")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (suggestions.Count > 0)
+{
+    <div class="row g-3 mb-4">
+        @foreach (var s in suggestions)
+        {
+            var added = addedSuggestions.Contains(s);
+            <div class="col-md-6">
+                <div class="card @(added ? "border-success" : "")">
+                    <div class="card-body">
+                        <p class="mb-1"><strong>@s.Tr</strong></p>
+                        <p class="mb-1 text-muted">@s.En</p>
+                        <p class="mb-1"><small>Hedef: @s.GoalTr</small></p>
+                        <p class="mb-2"><small class="text-muted">Görsel: @s.Query</small></p>
+                        @if (added)
+                        {
+                            <span class="badge bg-success">Taslağa eklendi</span>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-primary" @onclick="() => AddSuggestionAsync(s)" disabled="@busy">Taslağa Ekle</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
 <h2 class="mt-4">Özel Sorular</h2>
 
 <div class="card mb-4">
@@ -238,6 +301,8 @@ else if (!loading)
         ["dreams"] = "Hayaller",
     };
 
+    private static string TopicLabel(string key) => Topics.TryGetValue(key, out var v) ? v : key;
+
     private bool loading = true;
     private bool busy;
     private string? error;
@@ -259,6 +324,14 @@ else if (!loading)
     private string bTr = "";
     private string bEn = "";
     private string bQuery = "";
+
+    private bool generating;
+    private string gLevel = "sentence";
+    private int gAgeMin = 4;
+    private int gAgeMax = 8;
+    private int gCount = 5;
+    private List<GeneratedQuestion> suggestions = [];
+    private readonly HashSet<GeneratedQuestion> addedSuggestions = [];
 
     private ContentOverride? OverrideFor(string key)
         => overrides.TryGetValue(key, out var o) ? o : null;
@@ -337,6 +410,38 @@ else if (!loading)
             if (!ok) { error = "Sıfırlama başarısız — API hatası."; return; }
             info = "Soru özgün haline döndü.";
             if (editingBuiltinKey == key) editingBuiltinKey = null;
+            await ReloadAsync();
+        });
+
+    private async Task GenerateAsync()
+    {
+        generating = true;
+        error = null;
+        info = null;
+        try
+        {
+            if (gAgeMax < gAgeMin) gAgeMax = gAgeMin;
+            suggestions = await Api.GenerateQuestionsAsync(selectedTopic, gLevel, gAgeMin, gAgeMax, gCount);
+            addedSuggestions.Clear();
+            if (suggestions.Count == 0) error = "Öneri üretilemedi — tekrar dene.";
+        }
+        catch (Exception ex)
+        {
+            error = "Üretim başarısız: " + ex.Message;
+        }
+        finally
+        {
+            generating = false;
+        }
+    }
+
+    private async Task AddSuggestionAsync(GeneratedQuestion s)
+        => await RunAsync(async () =>
+        {
+            var ok = await Api.UpsertContentAsync(null, selectedTopic, s.Tr, s.En, s.GoalTr, s.GoalEn, s.Query);
+            if (!ok) { error = "Eklenemedi — API hatası."; return; }
+            addedSuggestions.Add(s);
+            info = "Öneri taslak olarak eklendi — aşağıdaki listeden yayınlayabilirsin.";
             await ReloadAsync();
         });
 

@@ -93,3 +93,7 @@ public record AiReply(
     [property: JsonPropertyName("created_at")] DateTimeOffset? CreatedAt);
 
 public record AiRepliesResponse(List<AiReply> Replies);
+
+public record GeneratedQuestion(string Tr, string En, string GoalTr, string GoalEn, string Query);
+
+public record GenerateResponse(List<GeneratedQuestion> Suggestions);
