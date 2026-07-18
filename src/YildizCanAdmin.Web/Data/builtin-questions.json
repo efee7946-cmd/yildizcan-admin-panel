@@ -1,0 +1,382 @@
+{
+  "greetings": [
+    {
+      "idx": 0,
+      "key": "city_school_q1",
+      "tr": "Sınıfa girince öğretmenine nasıl günaydın dersin?",
+      "en": "How do you say good morning to your teacher when you walk into class?"
+    },
+    {
+      "idx": 1,
+      "key": "city_home_q6",
+      "tr": "Eve misafir gelince kapıda ne dersin?",
+      "en": "What do you say at the door when a guest arrives?"
+    },
+    {
+      "idx": 2,
+      "key": "therapy_social_communication_q1",
+      "tr": "Bir arkadaşına oyun başlarken nasıl selam verirsin?",
+      "en": "How do you greet a friend when you start playing?"
+    },
+    {
+      "idx": 3,
+      "key": "city_school_q10",
+      "tr": "Okuldan çıkarken öğretmenine nasıl veda edersin?",
+      "en": "How do you say goodbye to your teacher when leaving school?"
+    },
+    {
+      "idx": 4,
+      "key": "city_park_q10",
+      "tr": "Parktan ayrılırken arkadaşlarına nasıl veda edersin?",
+      "en": "How do you say goodbye to your friends when leaving the park?"
+    },
+    {
+      "idx": 5,
+      "key": "map_greet_q1",
+      "tr": "Sabah uyanınca ailene ne dersin?",
+      "en": "What do you say to your family when you wake up in the morning?"
+    }
+  ],
+  "introduce": [
+    {
+      "idx": 0,
+      "key": "map_intro_q1",
+      "tr": "Senin adın ne? Bana söyler misin?",
+      "en": "What is your name? Can you tell me?"
+    },
+    {
+      "idx": 1,
+      "key": "map_intro_q2",
+      "tr": "Kaç yaşındasın?",
+      "en": "How old are you?"
+    },
+    {
+      "idx": 2,
+      "key": "map_intro_q3",
+      "tr": "Evde kimlerle yaşıyorsun?",
+      "en": "Who do you live with at home?"
+    },
+    {
+      "idx": 3,
+      "key": "map_intro_q4",
+      "tr": "En sevdiğin oyuncağın ne? Bana anlatır mısın?",
+      "en": "What is your favorite toy? Can you tell me about it?"
+    },
+    {
+      "idx": 4,
+      "key": "therapy_social_communication_q9",
+      "tr": "Yeni biriyle tanışınca kendini nasıl tanıtırsın?",
+      "en": "How do you introduce yourself to someone new?"
+    },
+    {
+      "idx": 5,
+      "key": "city_school_q8",
+      "tr": "Yeni bir arkadaşla tanışırken kendini nasıl tanıtırsın?",
+      "en": "How do you introduce yourself when meeting a new friend?"
+    }
+  ],
+  "emotions": [
+    {
+      "idx": 0,
+      "key": "therapy_emotions_q1",
+      "tr": "Bugün kendini en çok nasıl hissediyorsun?",
+      "en": "How are you feeling today?"
+    },
+    {
+      "idx": 1,
+      "key": "therapy_emotions_q2",
+      "tr": "Seni en hızlı ne mutlu eder?",
+      "en": "What makes you happy the fastest?"
+    },
+    {
+      "idx": 2,
+      "key": "therapy_emotions_q3",
+      "tr": "Üzüldüğünde yanında ne olsun istersin?",
+      "en": "When you're sad, what do you want to have nearby?"
+    },
+    {
+      "idx": 3,
+      "key": "therapy_emotions_q4",
+      "tr": "Heyecanlanınca bedeninde neler olur?",
+      "en": "What happens in your body when you get excited?"
+    },
+    {
+      "idx": 4,
+      "key": "therapy_emotions_q5",
+      "tr": "Korktuğunda kime haber verirsin?",
+      "en": "Who do you tell when you're scared?"
+    },
+    {
+      "idx": 5,
+      "key": "therapy_emotions_q9",
+      "tr": "Kızgın olduğunda sesini nasıl kullanman iyi olur?",
+      "en": "What's a good way to use your voice when you're angry?"
+    }
+  ],
+  "daily": [
+    {
+      "idx": 0,
+      "key": "therapy_daily_life_q1",
+      "tr": "Sabah uyanınca ilk ne yaparsın?",
+      "en": "What's the first thing you do when you wake up?"
+    },
+    {
+      "idx": 1,
+      "key": "therapy_daily_life_q2",
+      "tr": "Okula giderken yanına neler alırsın?",
+      "en": "What do you bring with you when you go to school?"
+    },
+    {
+      "idx": 2,
+      "key": "therapy_daily_life_q6",
+      "tr": "Dışarı çıkmadan önce hangi hazırlıkları yaparsın?",
+      "en": "What do you get ready before going outside?"
+    },
+    {
+      "idx": 3,
+      "key": "therapy_daily_life_q8",
+      "tr": "Yemekten önce ellerin için ne yaparsın?",
+      "en": "What do you do with your hands before eating?"
+    },
+    {
+      "idx": 4,
+      "key": "city_home_q5",
+      "tr": "Yatmadan önce hangi hazırlıkları yaparsın?",
+      "en": "What do you get ready before going to bed?"
+    },
+    {
+      "idx": 5,
+      "key": "therapy_daily_life_q7",
+      "tr": "Odanda en çok hangi eşyanı kullanırsın?",
+      "en": "Which thing in your room do you use the most?"
+    }
+  ],
+  "school": [
+    {
+      "idx": 0,
+      "key": "city_school_q2",
+      "tr": "Öğretmen defterini açmanı isterse ne yaparsın?",
+      "en": "What do you do when the teacher asks you to open your notebook?"
+    },
+    {
+      "idx": 1,
+      "key": "city_school_q3",
+      "tr": "Dersi anlamadığında öğretmeninden nasıl yardım istersin?",
+      "en": "How do you ask your teacher for help when you don't understand the lesson?"
+    },
+    {
+      "idx": 2,
+      "key": "city_school_q5",
+      "tr": "Kalemini düşüren arkadaşına ne demek güzel olur?",
+      "en": "What's a nice thing to say to a friend who dropped their pencil?"
+    },
+    {
+      "idx": 3,
+      "key": "city_school_q6",
+      "tr": "Sınıfta söz almak istediğinde nasıl davranırsın?",
+      "en": "How do you behave when you want to speak up in class?"
+    },
+    {
+      "idx": 4,
+      "key": "therapy_social_communication_q3",
+      "tr": "Oyuna katılmak istersen arkadaşına nasıl sorarsın?",
+      "en": "How do you ask a friend if you can join their game?"
+    },
+    {
+      "idx": 5,
+      "key": "therapy_social_communication_q7",
+      "tr": "Bir oyuncağı paylaşmak istediğinde nasıl konuşursun?",
+      "en": "What do you say when you want to share a toy?"
+    }
+  ],
+  "food": [
+    {
+      "idx": 0,
+      "key": "city_home_q2",
+      "tr": "Karnın acıktığında evde ne söylersin?",
+      "en": "What do you say at home when your tummy is hungry?"
+    },
+    {
+      "idx": 1,
+      "key": "therapy_daily_life_q3",
+      "tr": "Acıkınca evde ne söylersin?",
+      "en": "What do you say at home when you're hungry?"
+    },
+    {
+      "idx": 2,
+      "key": "city_market_q2",
+      "tr": "Meyve bölümünde elma mı muz mu istediğini nasıl anlatırsın?",
+      "en": "How do you say whether you want an apple or a banana in the fruit section?"
+    },
+    {
+      "idx": 3,
+      "key": "city_market_q7",
+      "tr": "Süt ile meyve suyu arasında seçim yaparken ne söylersin?",
+      "en": "What do you say when choosing between milk and juice?"
+    },
+    {
+      "idx": 4,
+      "key": "city_home_q8",
+      "tr": "Birlikte yemek yerken senden bir şey uzatmanı isteseler ne dersin?",
+      "en": "What do you say if someone asks you to pass something during dinner?"
+    },
+    {
+      "idx": 5,
+      "key": "map_food_q1",
+      "tr": "En sevdiğin yemek ne?",
+      "en": "What is your favorite food?"
+    }
+  ],
+  "hobbies": [
+    {
+      "idx": 0,
+      "key": "therapy_play_sports_q1",
+      "tr": "Parkta en çok hangi oyunu oynamayı seversin?",
+      "en": "What's your favorite game to play at the park?"
+    },
+    {
+      "idx": 1,
+      "key": "therapy_play_sports_q2",
+      "tr": "Futbol mu basketbol mu sana daha eğlenceli geliyor?",
+      "en": "Do you find football or basketball more fun?"
+    },
+    {
+      "idx": 2,
+      "key": "city_park_q1",
+      "tr": "Parka gidince ilk hangi oyunu oynamak istersin?",
+      "en": "What's the first game you want to play when you get to the park?"
+    },
+    {
+      "idx": 3,
+      "key": "map_hobby_q1",
+      "tr": "Boş zamanında ne yapmayı seversin?",
+      "en": "What do you like to do in your free time?"
+    },
+    {
+      "idx": 4,
+      "key": "map_hobby_q2",
+      "tr": "En sevdiğin çizgi film hangisi?",
+      "en": "What is your favorite cartoon?"
+    },
+    {
+      "idx": 5,
+      "key": "map_hobby_q3",
+      "tr": "Hangi oyunları oynamayı seversin?",
+      "en": "Which games do you like to play?"
+    }
+  ],
+  "places": [
+    {
+      "idx": 0,
+      "key": "map_places_q1",
+      "tr": "Okula nasıl gidiyorsun? Yürüyerek mi, arabayla mı?",
+      "en": "How do you get to school? Walking or by car?"
+    },
+    {
+      "idx": 1,
+      "key": "map_places_q2",
+      "tr": "Evde en çok hangi odada olmayı seversin?",
+      "en": "Which room at home do you like being in the most?"
+    },
+    {
+      "idx": 2,
+      "key": "city_home_q3",
+      "tr": "Oyuncağını bulamazsan annenden ya da babandan nasıl yardım istersin?",
+      "en": "How do you ask Mom or Dad for help when you can't find your toy?"
+    },
+    {
+      "idx": 3,
+      "key": "map_places_q3",
+      "tr": "Parka gitmek istediğinde kime, ne söylersin?",
+      "en": "When you want to go to the park, who do you ask and what do you say?"
+    },
+    {
+      "idx": 4,
+      "key": "map_places_q4",
+      "tr": "Gezmek için nereye gitmeyi seversin? Park mı, deniz mi?",
+      "en": "Where do you like to go for a trip? The park or the sea?"
+    },
+    {
+      "idx": 5,
+      "key": "city_market_q1",
+      "tr": "Markete girince almak istediğin ilk şeyi nasıl söylersin?",
+      "en": "How do you say the first thing you want to get when you walk into the store?"
+    }
+  ],
+  "problem": [
+    {
+      "idx": 0,
+      "key": "therapy_social_communication_q2",
+      "tr": "Bir şeyi anlamazsan öğretmene ne söylersin?",
+      "en": "What do you tell your teacher when you don't understand something?"
+    },
+    {
+      "idx": 1,
+      "key": "city_park_q9",
+      "tr": "Parkta düşen bir arkadaşını görünce ne yaparsın?",
+      "en": "What do you do when you see a friend fall down at the park?"
+    },
+    {
+      "idx": 2,
+      "key": "therapy_social_communication_q6",
+      "tr": "Yanlışlıkla birine çarparsan ne söylersin?",
+      "en": "What do you say if you bump into someone by accident?"
+    },
+    {
+      "idx": 3,
+      "key": "city_market_q9",
+      "tr": "Poşeti taşımakta zorlanırsan nasıl yardım istersin?",
+      "en": "How do you ask for help if you're struggling to carry the bag?"
+    },
+    {
+      "idx": 4,
+      "key": "map_problem_q1",
+      "tr": "Yüksekteki bir şeye ulaşamazsan ne yaparsın, kimden yardım istersin?",
+      "en": "If you can't reach something up high, what do you do and who do you ask for help?"
+    },
+    {
+      "idx": 5,
+      "key": "map_problem_q2",
+      "tr": "Oyuncağın kırılırsa ne yaparsın?",
+      "en": "What do you do if your toy breaks?"
+    }
+  ],
+  "dreams": [
+    {
+      "idx": 0,
+      "key": "map_dream_q1",
+      "tr": "Büyüyünce ne olmak istersin?",
+      "en": "What do you want to be when you grow up?"
+    },
+    {
+      "idx": 1,
+      "key": "map_dream_q2",
+      "tr": "Bir süper gücün olsaydı ne yapmak isterdin?",
+      "en": "If you had a superpower, what would you do?"
+    },
+    {
+      "idx": 2,
+      "key": "map_dream_q3",
+      "tr": "Bir gün nereye seyahat etmek isterdin?",
+      "en": "Where would you like to travel one day?"
+    },
+    {
+      "idx": 3,
+      "key": "map_dream_q4",
+      "tr": "Doğum gününde ne hediye istersin?",
+      "en": "What present do you want for your birthday?"
+    },
+    {
+      "idx": 4,
+      "key": "map_dream_q5",
+      "tr": "Yarın ne yapmak istersin?",
+      "en": "What do you want to do tomorrow?"
+    },
+    {
+      "idx": 5,
+      "key": "map_dream_q6",
+      "tr": "En büyük hayalin ne? Bana anlatır mısın?",
+      "en": "What is your biggest dream? Can you tell me?"
+    }
+  ]
+}

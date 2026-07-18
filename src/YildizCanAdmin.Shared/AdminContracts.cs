@@ -67,4 +67,15 @@ public record ContentQuestion(
     DateTimeOffset? CreatedAt,
     DateTimeOffset? UpdatedAt);
 
-public record ContentListResponse(List<ContentQuestion> Questions);
+public record ContentOverride(
+    bool? Hidden,
+    string? Tr,
+    string? En,
+    string? Query,
+    DateTimeOffset? UpdatedAt);
+
+public record ContentListResponse(
+    List<ContentQuestion> Questions,
+    Dictionary<string, ContentOverride>? Overrides = null);
+
+public record BuiltinQuestion(int Idx, string Key, string Tr, string En);

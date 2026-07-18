@@ -2,13 +2,14 @@
 @attribute [Authorize]
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject YildizCanApiClient Api
+@inject BuiltinCatalog Catalog
 
 <PageTitle>İçerik</PageTitle>
 
 <h1>Soru Havuzu</h1>
 <p class="text-muted">
-    Konuşma pratiği için özel sorular. Kaydedilen soru önce <strong>taslak</strong> olur;
-    "Yayınla" dediğinde ~5 dakika içinde tüm uygulamalara iner.
+    Bir konu seç: uygulamadaki <strong>yerleşik sorular</strong> ve senin <strong>özel soruların</strong> birlikte listelenir.
+    Değişiklikler ~5 dakika içinde tüm uygulamalara iner.
 </p>
 
 @if (error is not null)
@@ -20,9 +21,113 @@
     <div class="alert alert-success">@info</div>
 }
 
+<div class="mb-4" style="max-width:320px">
+    <label class="form-label">Konu</label>
+    <select class="form-select" @bind="selectedTopic">
+        @foreach (var t in Topics)
+        {
+            <option value="@t.Key">@t.Value</option>
+        }
+    </select>
+</div>
+
+<h2>Yerleşik Sorular</h2>
+<p class="text-muted">Uygulamayla gelen sorular. Düzenlersen/gizlersen tüm kullanıcılarda değişir; "Sıfırla" özgün haline döndürür.</p>
+
+@if (loading)
+{
+    <p><em>Yükleniyor…</em></p>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th style="width:36px">#</th>
+                <th>Soru (TR)</th>
+                <th style="width:52px">EN</th>
+                <th style="width:110px">Durum</th>
+                <th style="width:300px"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var b in Catalog.ForTopic(selectedTopic))
+            {
+                var key = $"{selectedTopic}:{b.Idx}";
+                var o = OverrideFor(key);
+                var hidden = o?.Hidden == true;
+                var edited = o is not null && !hidden;
+                <tr>
+                    <td>@(b.Idx + 1)</td>
+                    <td class="@(hidden ? "text-decoration-line-through text-muted" : "")">@(o?.Tr ?? b.Tr)</td>
+                    <td>@(string.IsNullOrWhiteSpace(o?.En ?? b.En) ? "—" : "✓")</td>
+                    <td>
+                        @if (hidden)
+                        {
+                            <span class="badge bg-dark">Gizli</span>
+                        }
+                        else if (edited)
+                        {
+                            <span class="badge bg-warning text-dark">Düzenlendi</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-light text-dark border">Özgün</span>
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartBuiltinEdit(key, b, o)" disabled="@busy">Düzenle</button>
+                        @if (hidden)
+                        {
+                            <button class="btn btn-sm btn-outline-success ms-1" @onclick="() => UnhideBuiltinAsync(key, o)" disabled="@busy">Göster</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-outline-dark ms-1" @onclick="() => HideBuiltinAsync(key, o)" disabled="@busy">Gizle</button>
+                        }
+                        @if (o is not null)
+                        {
+                            <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => RestoreBuiltinAsync(key)" disabled="@busy">Sıfırla</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (editingBuiltinKey is not null)
+{
+    <div class="card mb-4 border-warning">
+        <div class="card-body">
+            <h5 class="card-title">Yerleşik Soruyu Düzenle <span class="text-muted fs-6">(@editingBuiltinKey)</span></h5>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Soru (Türkçe) *</label>
+                    <textarea class="form-control" rows="2" @bind="bTr"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Soru (İngilizce)</label>
+                    <textarea class="form-control" rows="2" @bind="bEn"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Görsel arama terimi (İngilizce)</label>
+                    <input class="form-control" @bind="bQuery" />
+                </div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-warning" @onclick="SaveBuiltinEditAsync" disabled="@busy">Kaydet</button>
+                <button class="btn btn-outline-secondary ms-2" @onclick="() => editingBuiltinKey = null" disabled="@busy">Vazgeç</button>
+            </div>
+        </div>
+    </div>
+}
+
+<h2 class="mt-4">Özel Sorular</h2>
+
 <div class="card mb-4">
     <div class="card-body">
-        <h5 class="card-title">@(editingId is null ? "Yeni Soru" : "Soruyu Düzenle")</h5>
+        <h5 class="card-title">@(editingId is null ? "Yeni Özel Soru" : "Özel Soruyu Düzenle")</h5>
         <div class="row g-3">
             <div class="col-md-4">
                 <label class="form-label">Konu</label>
@@ -66,31 +171,26 @@
     </div>
 </div>
 
-@if (loading)
+@{ var visibleCustoms = questions.Where(q => q.Topic == selectedTopic).ToList(); }
+@if (!loading && visibleCustoms.Count == 0)
 {
-    <p><em>Yükleniyor…</em></p>
+    <p>Bu konuda özel soru yok.</p>
 }
-else if (questions.Count == 0)
-{
-    <p>Havuzda henüz soru yok.</p>
-}
-else
+else if (!loading)
 {
     <table class="table table-striped align-middle">
         <thead>
             <tr>
-                <th>Konu</th>
                 <th>Soru (TR)</th>
-                <th>EN</th>
-                <th>Durum</th>
+                <th style="width:52px">EN</th>
+                <th style="width:110px">Durum</th>
                 <th style="width:260px"></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var q in questions)
+            @foreach (var q in visibleCustoms)
             {
                 <tr>
-                    <td>@TopicLabel(q.Topic)</td>
                     <td>@q.Tr</td>
                     <td>@(string.IsNullOrWhiteSpace(q.En) ? "—" : "✓")</td>
                     <td>
@@ -138,13 +238,13 @@ else
         ["dreams"] = "Hayaller",
     };
 
-    private static string TopicLabel(string key) => Topics.TryGetValue(key, out var v) ? v : key;
-
     private bool loading = true;
     private bool busy;
     private string? error;
     private string? info;
+    private string selectedTopic = "greetings";
     private List<ContentQuestion> questions = [];
+    private Dictionary<string, ContentOverride> overrides = new();
 
     private string? editingId;
     private string? armedDeleteId;
@@ -155,6 +255,14 @@ else
     private string fGoalEn = "";
     private string fQuery = "";
 
+    private string? editingBuiltinKey;
+    private string bTr = "";
+    private string bEn = "";
+    private string bQuery = "";
+
+    private ContentOverride? OverrideFor(string key)
+        => overrides.TryGetValue(key, out var o) ? o : null;
+
     protected override async Task OnInitializedAsync() => await ReloadAsync();
 
     private async Task ReloadAsync()
@@ -163,7 +271,9 @@ else
         error = null;
         try
         {
-            questions = await Api.GetContentAsync();
+            var r = await Api.GetContentAsync();
+            questions = r.Questions;
+            overrides = r.Overrides ?? new();
         }
         catch (Exception ex)
         {
@@ -175,10 +285,65 @@ else
         }
     }
 
+    private void StartBuiltinEdit(string key, BuiltinQuestion b, ContentOverride? o)
+    {
+        editingBuiltinKey = key;
+        bTr = o?.Tr ?? b.Tr;
+        bEn = o?.En ?? b.En;
+        bQuery = o?.Query ?? "";
+        info = null;
+        error = null;
+    }
+
+    private async Task SaveBuiltinEditAsync()
+    {
+        if (editingBuiltinKey is null) return;
+        if (string.IsNullOrWhiteSpace(bTr)) { error = "Türkçe metin zorunlu."; return; }
+        await RunAsync(async () =>
+        {
+            var ok = await Api.OverrideBuiltinAsync(editingBuiltinKey, bTr.Trim(), bEn.Trim(), bQuery.Trim(), hidden: false);
+            if (!ok) { error = "Kaydetme başarısız — API hatası."; return; }
+            info = "Yerleşik soru düzenlendi — ~5 dk içinde uygulamalara iner.";
+            editingBuiltinKey = null;
+            await ReloadAsync();
+        });
+    }
+
+    private async Task HideBuiltinAsync(string key, ContentOverride? o)
+        => await RunAsync(async () =>
+        {
+            var ok = await Api.OverrideBuiltinAsync(key, o?.Tr, o?.En, o?.Query, hidden: true);
+            if (!ok) { error = "Gizleme başarısız — API hatası."; return; }
+            info = "Soru gizlendi — uygulamalarda sorulmayacak.";
+            await ReloadAsync();
+        });
+
+    private async Task UnhideBuiltinAsync(string key, ContentOverride? o)
+        => await RunAsync(async () =>
+        {
+            var hasEdit = !string.IsNullOrWhiteSpace(o?.Tr) || !string.IsNullOrWhiteSpace(o?.En) || !string.IsNullOrWhiteSpace(o?.Query);
+            var ok = hasEdit
+                ? await Api.OverrideBuiltinAsync(key, o?.Tr, o?.En, o?.Query, hidden: false)
+                : await Api.RestoreBuiltinAsync(key);
+            if (!ok) { error = "İşlem başarısız — API hatası."; return; }
+            info = "Soru tekrar gösteriliyor.";
+            await ReloadAsync();
+        });
+
+    private async Task RestoreBuiltinAsync(string key)
+        => await RunAsync(async () =>
+        {
+            var ok = await Api.RestoreBuiltinAsync(key);
+            if (!ok) { error = "Sıfırlama başarısız — API hatası."; return; }
+            info = "Soru özgün haline döndü.";
+            if (editingBuiltinKey == key) editingBuiltinKey = null;
+            await ReloadAsync();
+        });
+
     private void ClearForm()
     {
         editingId = null;
-        fTopic = "greetings";
+        fTopic = selectedTopic;
         fTr = fEn = fGoalTr = fGoalEn = fQuery = "";
         info = null;
     }
@@ -198,71 +363,51 @@ else
 
     private async Task SaveAsync()
     {
-        if (string.IsNullOrWhiteSpace(fTr))
-        {
-            error = "Türkçe soru metni zorunlu.";
-            return;
-        }
-        busy = true;
-        error = null;
-        info = null;
-        try
+        if (string.IsNullOrWhiteSpace(fTr)) { error = "Türkçe soru metni zorunlu."; return; }
+        await RunAsync(async () =>
         {
             var ok = await Api.UpsertContentAsync(editingId, fTopic, fTr.Trim(), fEn.Trim(), fGoalTr.Trim(), fGoalEn.Trim(), fQuery.Trim());
             if (!ok) { error = "Kaydetme başarısız — API hatası."; return; }
             info = editingId is null ? "Soru taslak olarak kaydedildi." : "Soru güncellendi.";
             ClearForm();
             await ReloadAsync();
-        }
-        catch (Exception ex)
-        {
-            error = "Kaydetme başarısız: " + ex.Message;
-        }
-        finally
-        {
-            busy = false;
-        }
+        });
     }
 
     private async Task TogglePublishAsync(ContentQuestion q)
-    {
-        busy = true;
-        error = null;
-        info = null;
-        try
+        => await RunAsync(async () =>
         {
             var ok = await Api.SetContentPublishedAsync(q.Id, !q.Published);
             if (!ok) { error = "İşlem başarısız — API hatası."; return; }
             info = q.Published ? "Soru yayından çekildi." : "Soru yayınlandı — ~5 dk içinde uygulamalara iner.";
             await ReloadAsync();
-        }
-        catch (Exception ex)
-        {
-            error = "İşlem başarısız: " + ex.Message;
-        }
-        finally
-        {
-            busy = false;
-        }
-    }
+        });
 
     private async Task DeleteAsync(ContentQuestion q)
     {
-        busy = true;
-        error = null;
-        info = null;
         armedDeleteId = null;
-        try
+        await RunAsync(async () =>
         {
             var ok = await Api.DeleteContentAsync(q.Id);
             if (!ok) { error = "Silme başarısız — API hatası."; return; }
             info = "Soru silindi.";
             if (editingId == q.Id) ClearForm();
             await ReloadAsync();
+        });
+    }
+
+    private async Task RunAsync(Func<Task> work)
+    {
+        busy = true;
+        error = null;
+        info = null;
+        try
+        {
+            await work();
         }
         catch (Exception ex)
         {
-            error = "Silme başarısız: " + ex.Message;
+            error = "İşlem başarısız: " + ex.Message;
         }
         finally
         {

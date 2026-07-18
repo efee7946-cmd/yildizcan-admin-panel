@@ -43,6 +43,8 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 // YıldızCan Node admin API istemcisi. BaseAddress '/' ile bitmeli; ADMIN_KEY
 // gizli, appsettings'e değil user-secrets/ortam değişkenine konur ve yalnızca
 // sunucuda kalır (tarayıcıya inmez).
+builder.Services.AddSingleton<BuiltinCatalog>();
+
 builder.Services.AddHttpClient<YildizCanApiClient>((sp, client) =>
 {
     var cfg = sp.GetRequiredService<IConfiguration>();
