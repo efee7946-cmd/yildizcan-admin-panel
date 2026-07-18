@@ -139,7 +139,7 @@ else
             </div>
             <div class="col-md-2">
                 <label class="form-label">Yaş (min)</label>
-                <input type="number" class="form-control" @bind="gAgeMin" min="3" max="12" />
+                <input type="number" class="form-control" @bind="gAgeMin" min="3" max="14" />
             </div>
             <div class="col-md-2">
                 <label class="form-label">Yaş (max)</label>
@@ -328,7 +328,7 @@ else if (!loading)
     private bool generating;
     private string gLevel = "sentence";
     private int gAgeMin = 4;
-    private int gAgeMax = 8;
+    private int gAgeMax = 14;
     private int gCount = 5;
     private List<GeneratedQuestion> suggestions = [];
     private readonly HashSet<GeneratedQuestion> addedSuggestions = [];

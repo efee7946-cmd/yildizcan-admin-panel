@@ -2,7 +2,7 @@
 
 **YıldızCan Therapy Management System** — [YıldızCan](https://github.com/efee7946-cmd/ozel-egitim) özel eğitim uygulamasının seans, içerik ve denetim yönetim paneli.
 
-Özel gereksinimli çocuklar (4-8 yaş) için geliştirilen YıldızCan mobil/web uygulamasının arkasındaki yönetim aracıdır: öğrenci ilerlemesini izler, veli raporu üretir, uygulamadaki soru havuzunu yönetir ve yapay zekâ destekli içerik üretimi/denetimi sağlar. Ayrı bir .NET projesidir; veriye YıldızCan'ın Node.js API'si üzerinden REST ile erişir, uygulamanın veritabanına doğrudan bağlanmaz.
+Özel gereksinimli çocuklar (4-14 yaş — okul öncesinden ortaokula) için geliştirilen YıldızCan mobil/web uygulamasının arkasındaki yönetim aracıdır: öğrenci ilerlemesini izler, veli raporu üretir, uygulamadaki soru havuzunu yönetir ve yapay zekâ destekli içerik üretimi/denetimi sağlar. Ayrı bir .NET projesidir; veriye YıldızCan'ın Node.js API'si üzerinden REST ile erişir, uygulamanın veritabanına doğrudan bağlanmaz.
 
 ## Özellikler
 
