@@ -28,4 +28,29 @@ public sealed class YildizCanApiClient(HttpClient http)
     public Task<StatsResponse?> GetStatsAsync(string user, string id, CancellationToken ct = default)
         => http.GetFromJsonAsync<StatsResponse>(
             $"api/admin?resource=stats&user={Uri.EscapeDataString(user)}&id={Uri.EscapeDataString(id)}", ct);
+
+    public async Task<List<ContentQuestion>> GetContentAsync(CancellationToken ct = default)
+        => (await http.GetFromJsonAsync<ContentListResponse>("api/admin?resource=content", ct))?.Questions ?? [];
+
+    public async Task<bool> UpsertContentAsync(string? id, string topic, string tr, string en, string goalTr, string goalEn, string query, CancellationToken ct = default)
+    {
+        var r = await http.PostAsJsonAsync("api/admin?resource=content", new
+        {
+            action = "upsert",
+            question = new { id, topic, tr, en, goalTr, goalEn, query }
+        }, ct);
+        return r.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> SetContentPublishedAsync(string id, bool published, CancellationToken ct = default)
+    {
+        var r = await http.PostAsJsonAsync("api/admin?resource=content", new { action = "publish", id, published }, ct);
+        return r.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteContentAsync(string id, CancellationToken ct = default)
+    {
+        var r = await http.PostAsJsonAsync("api/admin?resource=content", new { action = "delete", id }, ct);
+        return r.IsSuccessStatusCode;
+    }
 }

@@ -54,3 +54,17 @@ public record StatsResponse(
     JsonElement Adaptive,
     JsonElement SpeechMap,
     JsonElement Stars);
+
+public record ContentQuestion(
+    string Id,
+    string Topic,
+    string Tr,
+    string En,
+    string GoalTr,
+    string GoalEn,
+    string Query,
+    bool Published,
+    DateTimeOffset? CreatedAt,
+    DateTimeOffset? UpdatedAt);
+
+public record ContentListResponse(List<ContentQuestion> Questions);

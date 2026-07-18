@@ -1,0 +1,272 @@
+@page "/content"
+@attribute [Authorize]
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@inject YildizCanApiClient Api
+
+<PageTitle>İçerik</PageTitle>
+
+<h1>Soru Havuzu</h1>
+<p class="text-muted">
+    Konuşma pratiği için özel sorular. Kaydedilen soru önce <strong>taslak</strong> olur;
+    "Yayınla" dediğinde ~5 dakika içinde tüm uygulamalara iner.
+</p>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+@if (info is not null)
+{
+    <div class="alert alert-success">@info</div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">@(editingId is null ? "Yeni Soru" : "Soruyu Düzenle")</h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Konu</label>
+                <select class="form-select" @bind="fTopic">
+                    @foreach (var t in Topics)
+                    {
+                        <option value="@t.Key">@t.Value</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-8">
+                <label class="form-label">Görsel arama terimi (İngilizce, Pexels)</label>
+                <input class="form-control" @bind="fQuery" placeholder="örn. happy child eating breakfast" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Soru (Türkçe) *</label>
+                <textarea class="form-control" rows="2" @bind="fTr" placeholder="örn. Kahvaltıda en çok ne yersin?"></textarea>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Soru (İngilizce) — boşsa EN'de görünmez</label>
+                <textarea class="form-control" rows="2" @bind="fEn"></textarea>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Hedef (Türkçe, opsiyonel)</label>
+                <input class="form-control" @bind="fGoalTr" placeholder="örn. Yiyecek adı söyleyebilme" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Hedef (İngilizce, opsiyonel)</label>
+                <input class="form-control" @bind="fGoalEn" />
+            </div>
+        </div>
+        <div class="mt-3">
+            <button class="btn btn-primary" @onclick="SaveAsync" disabled="@busy">
+                @(editingId is null ? "Taslak Olarak Kaydet" : "Güncelle")
+            </button>
+            @if (editingId is not null)
+            {
+                <button class="btn btn-outline-secondary ms-2" @onclick="ClearForm" disabled="@busy">Vazgeç</button>
+            }
+        </div>
+    </div>
+</div>
+
+@if (loading)
+{
+    <p><em>Yükleniyor…</em></p>
+}
+else if (questions.Count == 0)
+{
+    <p>Havuzda henüz soru yok.</p>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Konu</th>
+                <th>Soru (TR)</th>
+                <th>EN</th>
+                <th>Durum</th>
+                <th style="width:260px"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var q in questions)
+            {
+                <tr>
+                    <td>@TopicLabel(q.Topic)</td>
+                    <td>@q.Tr</td>
+                    <td>@(string.IsNullOrWhiteSpace(q.En) ? "—" : "✓")</td>
+                    <td>
+                        @if (q.Published)
+                        {
+                            <span class="badge bg-success">Yayında</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Taslak</span>
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => TogglePublishAsync(q)" disabled="@busy">
+                            @(q.Published ? "Geri Çek" : "Yayınla")
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary ms-1" @onclick="() => EditRow(q)" disabled="@busy">Düzenle</button>
+                        @if (armedDeleteId == q.Id)
+                        {
+                            <button class="btn btn-sm btn-danger ms-1" @onclick="() => DeleteAsync(q)" disabled="@busy">Emin misin?</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => armedDeleteId = q.Id" disabled="@busy">Sil</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private static readonly Dictionary<string, string> Topics = new()
+    {
+        ["greetings"] = "Selamlaşma",
+        ["introduce"] = "Kendini Tanıtma",
+        ["emotions"] = "Duygular",
+        ["daily"] = "Günlük Yaşam",
+        ["school"] = "Okul",
+        ["food"] = "Yemek",
+        ["hobbies"] = "Hobiler",
+        ["places"] = "Yerler",
+        ["problem"] = "Problem Çözme",
+        ["dreams"] = "Hayaller",
+    };
+
+    private static string TopicLabel(string key) => Topics.TryGetValue(key, out var v) ? v : key;
+
+    private bool loading = true;
+    private bool busy;
+    private string? error;
+    private string? info;
+    private List<ContentQuestion> questions = [];
+
+    private string? editingId;
+    private string? armedDeleteId;
+    private string fTopic = "greetings";
+    private string fTr = "";
+    private string fEn = "";
+    private string fGoalTr = "";
+    private string fGoalEn = "";
+    private string fQuery = "";
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        loading = true;
+        error = null;
+        try
+        {
+            questions = await Api.GetContentAsync();
+        }
+        catch (Exception ex)
+        {
+            error = "Liste alınamadı: " + ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void ClearForm()
+    {
+        editingId = null;
+        fTopic = "greetings";
+        fTr = fEn = fGoalTr = fGoalEn = fQuery = "";
+        info = null;
+    }
+
+    private void EditRow(ContentQuestion q)
+    {
+        editingId = q.Id;
+        fTopic = q.Topic;
+        fTr = q.Tr;
+        fEn = q.En;
+        fGoalTr = q.GoalTr;
+        fGoalEn = q.GoalEn;
+        fQuery = q.Query;
+        info = null;
+        error = null;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(fTr))
+        {
+            error = "Türkçe soru metni zorunlu.";
+            return;
+        }
+        busy = true;
+        error = null;
+        info = null;
+        try
+        {
+            var ok = await Api.UpsertContentAsync(editingId, fTopic, fTr.Trim(), fEn.Trim(), fGoalTr.Trim(), fGoalEn.Trim(), fQuery.Trim());
+            if (!ok) { error = "Kaydetme başarısız — API hatası."; return; }
+            info = editingId is null ? "Soru taslak olarak kaydedildi." : "Soru güncellendi.";
+            ClearForm();
+            await ReloadAsync();
+        }
+        catch (Exception ex)
+        {
+            error = "Kaydetme başarısız: " + ex.Message;
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private async Task TogglePublishAsync(ContentQuestion q)
+    {
+        busy = true;
+        error = null;
+        info = null;
+        try
+        {
+            var ok = await Api.SetContentPublishedAsync(q.Id, !q.Published);
+            if (!ok) { error = "İşlem başarısız — API hatası."; return; }
+            info = q.Published ? "Soru yayından çekildi." : "Soru yayınlandı — ~5 dk içinde uygulamalara iner.";
+            await ReloadAsync();
+        }
+        catch (Exception ex)
+        {
+            error = "İşlem başarısız: " + ex.Message;
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private async Task DeleteAsync(ContentQuestion q)
+    {
+        busy = true;
+        error = null;
+        info = null;
+        armedDeleteId = null;
+        try
+        {
+            var ok = await Api.DeleteContentAsync(q.Id);
+            if (!ok) { error = "Silme başarısız — API hatası."; return; }
+            info = "Soru silindi.";
+            if (editingId == q.Id) ClearForm();
+            await ReloadAsync();
+        }
+        catch (Exception ex)
+        {
+            error = "Silme başarısız: " + ex.Message;
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+}
